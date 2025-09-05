@@ -26,6 +26,4 @@ jobs:
         run: dotnet pack --configuration Release SampleLibrary/SampleLibrary.csproj -o ./artifacts
 
       - name: Push to JFrog NuGet Repo
-        run: dotnet nuget push ./artifacts/*.nupkg \
-          --api-key ${{ secrets.JFROG_PASSWORD }} \
-          --source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget"
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.JFROG_PASSWORD }} --source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget"
