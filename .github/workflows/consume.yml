@@ -1,0 +1,29 @@
+name: Consume NuGet from JFrog
+
+on:
+  workflow_dispatch:
+
+jobs:
+  consume:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Add JFrog NuGet Source
+        run: dotnet nuget add source "https://<your-subdomain>.jfrog.io/artifactory/api/nuget/<your-nuget-repo-name>" --name jfrog --username <your-username> --password ${{ secrets.JFROG_API_KEY }}
+
+      - name: Create Sample Console App
+        run: dotnet new console -n ConsumerApp
+
+      - name: Add Dependency on SampleLibrary
+        run: dotnet add ConsumerApp/ConsumerApp.csproj package SampleLibrary --version 1.0.0
+
+      - name: Build Consumer App
+        run: dotnet build ConsumerApp/ConsumerApp.csproj
