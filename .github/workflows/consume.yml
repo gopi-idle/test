@@ -1,34 +1,40 @@
 name: Consume NuGet from JFrog
 
 on:
-  workflow_dispatch:   # manual trigger
+  workflow_dispatch:
 
 jobs:
   consume-package:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # Add JFrog source
+      # Add JFrog as NuGet source
       - name: Configure JFrog NuGet Source
-        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" --name jfrog --username ${{ secrets.JFROG_USERNAME }} --password ${{ secrets.JFROG_TOKEN }} --store-password-in-clear-text
+        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" \
+          --name jfrog \
+          --username ${{ secrets.JFROG_USERNAME }} \
+          --password ${{ secrets.JFROG_TOKEN }} \
+          --store-password-in-clear-text
 
-      # Create a sample consumer project
+      # Create sample consumer project
       - name: Create consumer project
         run: dotnet new console -n ConsumerApp
 
-      # Add your NuGet package from JFrog
+      # Add package (no --source, since jfrog is already configured globally)
       - name: Add SampleLibrary package
-        run: dotnet add ConsumerApp/ConsumerApp.csproj package SampleLibrary --version 1.0.0 --source jfrog
+        run: dotnet add ConsumerApp/ConsumerApp.csproj package SampleLibrary --version 1.0.0
+
+      # Restore explicitly (uses all configured sources, including jfrog)
+      - name: Restore dependencies
+        run: dotnet restore ConsumerApp/ConsumerApp.csproj
 
       # Build consumer app
       - name: Build ConsumerApp
