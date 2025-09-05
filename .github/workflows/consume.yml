@@ -1,32 +1,35 @@
 name: Consume NuGet from JFrog
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # manual trigger
 
 jobs:
-  consume:
+  consume-package:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      # Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      # Setup .NET
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
 
-      - name: Add JFrog NuGet Source
-        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" \
-          --name jfrog \
-          --username ${{ secrets.JFROG_USERNAME }} \
-          --password ${{ secrets.JFROG_PASSWORD }}
+      # Add JFrog source
+      - name: Configure JFrog NuGet Source
+        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" --name jfrog --username ${{ secrets.JFROG_USERNAME }} --password ${{ secrets.JFROG_TOKEN }} --store-password-in-clear-text
 
-      - name: Create Sample Console App
+      # Create a sample consumer project
+      - name: Create consumer project
         run: dotnet new console -n ConsumerApp
 
-      - name: Add Dependency on SampleLibrary
-        run: dotnet add ConsumerApp/ConsumerApp.csproj package SampleLibrary --version 1.0.0
+      # Add your NuGet package from JFrog
+      - name: Add SampleLibrary package
+        run: dotnet add ConsumerApp/ConsumerApp.csproj package SampleLibrary --version 1.0.0 --source jfrog
 
-      - name: Build Consumer App
-        run: dotnet build ConsumerApp/ConsumerApp.csproj
+      # Build consumer app
+      - name: Build ConsumerApp
+        run: dotnet build ConsumerApp/ConsumerApp.csproj --configuration Release
