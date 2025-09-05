@@ -1,35 +1,39 @@
 name: Publish NuGet to JFrog
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # allows manual trigger from Actions tab
 
 jobs:
-  build-and-push:
+  build-and-publish:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      # Checkout source
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      # Setup .NET
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
 
-      - name: Restore Dependencies
-        run: dotnet restore SampleLibrary/SampleLibrary.csproj
+      # Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Build Project
-        run: dotnet build --configuration Release SampleLibrary/SampleLibrary.csproj
+      # Build project
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
 
-      - name: Pack NuGet Package
-        run: dotnet pack --configuration Release SampleLibrary/SampleLibrary.csproj -o ./artifacts
+      # Pack project into .nupkg
+      - name: Pack NuGet package
+        run: dotnet pack --configuration Release --no-build -o ./artifacts
 
-      - name: Add JFrog NuGet Source
-        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" \
-          --name jfrog \
-          --username ${{ secrets.JFROG_USERNAME }} \
-          --password ${{ secrets.JFROG_PASSWORD }}
+      # Configure JFrog NuGet Source
+      - name: Configure JFrog NuGet Source
+        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" --name jfrog --username ${{ secrets.JFROG_USERNAME }} --password ${{ secrets.JFROG_TOKEN }} --store-password-in-clear-text
 
-      - name: Push to JFrog NuGet Repo
+      # Push package to JFrog
+      - name: Push package to JFrog
         run: dotnet nuget push ./artifacts/*.nupkg --source jfrog --skip-duplicate
