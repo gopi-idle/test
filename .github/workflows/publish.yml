@@ -1,0 +1,29 @@
+name: Publish NuGet to JFrog
+
+on:
+  workflow_dispatch: # trigger manually
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore SampleLibrary/SampleLibrary.csproj
+
+      - name: Build Project
+        run: dotnet build --configuration Release SampleLibrary/SampleLibrary.csproj
+
+      - name: Pack NuGet Package
+        run: dotnet pack --configuration Release SampleLibrary/SampleLibrary.csproj -o ./artifacts
+
+      - name: Push to JFrog NuGet Repo
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.JFROG_API_KEY }} --source "https://<your-subdomain>.jfrog.io/artifactory/api/nuget/<your-nuget-repo-name>"
