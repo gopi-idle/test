@@ -17,7 +17,10 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Add JFrog NuGet Source
-        run: dotnet nuget add source "https://<your-subdomain>.jfrog.io/artifactory/api/nuget/<your-nuget-repo-name>" --name jfrog --username <your-username> --password ${{ secrets.JFROG_API_KEY }}
+        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" \
+          --name jfrog \
+          --username ${{ secrets.JFROG_USERNAME }} \
+          --password ${{ secrets.JFROG_PASSWORD }}
 
       - name: Create Sample Console App
         run: dotnet new console -n ConsumerApp
