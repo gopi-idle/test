@@ -1,7 +1,7 @@
 name: Publish NuGet to JFrog
 
 on:
-  workflow_dispatch: # trigger manually
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -25,5 +25,11 @@ jobs:
       - name: Pack NuGet Package
         run: dotnet pack --configuration Release SampleLibrary/SampleLibrary.csproj -o ./artifacts
 
+      - name: Add JFrog NuGet Source
+        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" \
+          --name jfrog \
+          --username ${{ secrets.JFROG_USERNAME }} \
+          --password ${{ secrets.JFROG_PASSWORD }}
+
       - name: Push to JFrog NuGet Repo
-        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.JFROG_PASSWORD }} --source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget"
+        run: dotnet nuget push ./artifacts/*.nupkg --source jfrog --skip-duplicate
