@@ -16,26 +16,22 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # Add JFrog as NuGet source
       - name: Configure JFrog NuGet Source
-        run: dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" \
-          --name jfrog \
-          --username ${{ secrets.JFROG_USERNAME }} \
-          --password ${{ secrets.JFROG_TOKEN }} \
-          --store-password-in-clear-text
+        run: |
+          dotnet nuget add source "https://trial2q08ul.jfrog.io/artifactory/api/nuget/test-nuget" \
+            -n jfrog \
+            -u "${{ secrets.JFROG_USERNAME }}" \
+            -p "${{ secrets.JFROG_TOKEN }}" \
+            --store-password-in-clear-text
 
-      # Create sample consumer project
       - name: Create consumer project
         run: dotnet new console -n ConsumerApp
 
-      # Add package (no --source, since jfrog is already configured globally)
       - name: Add SampleLibrary package
         run: dotnet add ConsumerApp/ConsumerApp.csproj package SampleLibrary --version 1.0.0
 
-      # Restore explicitly (uses all configured sources, including jfrog)
       - name: Restore dependencies
         run: dotnet restore ConsumerApp/ConsumerApp.csproj
 
-      # Build consumer app
       - name: Build ConsumerApp
         run: dotnet build ConsumerApp/ConsumerApp.csproj --configuration Release
